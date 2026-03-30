@@ -170,10 +170,40 @@ bool CompStmt(istream& in, int& line) { // CompStmt ::= BEGIN Stmt {; Stmt } END
 		return false;
 	}
 	if (!Stmt(in, line)) {
-		ParseError
+		ParseError(line, "Missing statement from compound statement");
+		return false;
 	}
+
+	while (true) {
+		tok = Parser::GetNextToken(in, line);
+
+		if (tok.GetToken() != SEMICOL) {
+			Parser::PushBackToken(tok);
+			break;
+		}
+
+		if (!Stmt(in, line)) {
+			ParseError(line, "Missing statement from compound statement");
+			return false;
+		}
+	}
+
+	tok = Parser::GetNextToken(in, line);
+
+	if (tok.GetToken() != END) {
+		ParseError(line, "End missing from compound statement");
+		return false;
+	}
+
+	return true;
 }
-bool SimpleStmt(istream& in, int& line); // SimpleStmt ::= AssignStme | ReadLnStmt | WriteLnStmt | WriteStmt
+
+bool SimpleStmt(istream& in, int& line) { // SimpleStmt ::= AssignStmt | ReadLnStmt | WriteLnStmt | WriteStmt
+	LexItem tok = Parser::GetNextToken(in, line);
+	Parser::PushBackToken(tok);
+
+
+}
 bool WriteLnStmt(istream& in, int& line); // WriteLnStmt ::= WRITELN ( ExprList )
 bool WriteStmt(istream& in, int& line); // WriteStmt ::= WRITE ( ExprList )
 bool ReadLnStmt(istream& in, int& line); // ReadLnStmt ::= ReadLnStmt ( VarList )
