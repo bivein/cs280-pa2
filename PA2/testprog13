@@ -1,0 +1,22 @@
+PROGRAM circle;
+	(*Illegal Else-clause*)
+CONST
+	pi = 3.14;
+	factor = 2;
+VAR
+	(*Variable declarations*)
+	r, a, p, b : REAL; 
+	i, j : INTEGER;	
+Begin
+	r := 8;
+	p := 0;
+	a := 0;
+	
+	j := -1;
+	IF ( r > 5) THEN
+	  a := (3.14) * r * r;
+	else
+	    p := 2 * 3.14 * b; 
+	(*Display the results*)
+	WRITELN  ('The output results are ' , r, p, b);
+END.

@@ -1,0 +1,22 @@
+PROGRAM circle;
+CONST
+	pi = 3.14;
+	factor = 2;
+	
+VAR
+	{Illegal use of a defined constant as a variable}
+	r, a, p, b : REAL; 
+	i, j, pi : INTEGER;	
+begin
+	r := 8;
+	p := 0;
+	a := 0;
+	
+	j := -1;
+	IF ( r > 5) THEN
+	  a := pi * r * r;
+	IF (a < 100) THEN
+	    p := 2 * 3.14 * b; 
+	(*Display the results*)
+	WRITELN  ('The output results are ' , r, p, b)
+END. 

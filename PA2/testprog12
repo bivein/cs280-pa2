@@ -1,0 +1,19 @@
+program circle;
+CONST
+	foo = 3.14;
+	foo = 2; {Constant redefinition}
+var
+	r, a, p, b : real; 
+	i, j : integer := 0;	
+begin
+	if := 8;
+	p := 0;
+	a := 0;
+	j := -1;
+	if r > 5 THEN
+	  a := (3.14) * r * r;
+	if (a < 100) THEN
+	    p := 2 * 3.14 * b; 
+	{Display the results}
+	writeln ( 'The output results are ' , r, p, b);
+end. 

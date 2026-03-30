@@ -1,0 +1,21 @@
+PROGRAM circle;
+	(*If statement syntax error*)
+const
+    factor = 2;
+    pi = 3.14;
+VAR
+	(*Variable declarations*)
+	r, a, p, b : REAL; 
+	i, j, sum : INTEGER;	
+BEGIN
+	readln (r, a, p);
+	sum := 0;
+	j := -1;
+	IF  r > 5 
+	  	a := (3.14) + j * r
+	ELSE
+		p := 0;
+		
+	(*Display the results*)
+	WRITELN  ('The output results are ' , r, p, b);
+END
