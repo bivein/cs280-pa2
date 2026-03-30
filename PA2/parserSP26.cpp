@@ -202,7 +202,21 @@ bool SimpleStmt(istream& in, int& line) { // SimpleStmt ::= AssignStmt | ReadLnS
 	LexItem tok = Parser::GetNextToken(in, line);
 	Parser::PushBackToken(tok);
 
-
+	if (AssignStmt(in, line)) {
+		return true;
+	}
+	else if (ReadLnStmt(in, line)) {
+		return true;
+	}
+	else if (WriteLnStmt(in, line)) {
+		return true;
+	}
+	else if (WriteStmt(in, line)) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 bool WriteLnStmt(istream& in, int& line); // WriteLnStmt ::= WRITELN ( ExprList )
 bool WriteStmt(istream& in, int& line); // WriteStmt ::= WRITE ( ExprList )
