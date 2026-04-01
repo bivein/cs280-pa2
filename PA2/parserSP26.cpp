@@ -63,7 +63,7 @@ bool ConstDef(istream& in, int& line) { // ConstDef ::= IDENT = Expr
 	else {
 		defConst.insert(std::make_pair(var, true));
 	}
-	
+
 
 	tok = Parser::GetNextToken(in, line); // Assignment check
 	if (tok.GetToken() != EQ) {
