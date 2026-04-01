@@ -1,5 +1,5 @@
 
-
+#include <vector>
 #include "parserSP26.h"
 
 map<string, bool> defVar;
@@ -82,11 +82,22 @@ bool ConstDef(istream& in, int& line) { // ConstDef ::= IDENT = Expr
 
 bool DeclStmt(istream& in, int& line) { // DeclStmt ::= IDENT {, IDENT } : Type [:= Expr]
 	LexItem tok = Parser::GetNextToken(in, line);
+	std::vector<string> varslist;
 
 	if (tok.GetToken() != IDENT) {
 		ParseError(line, "Missing identifier in declaration statement");
 		return false;
 	}
+	std::string var = tok.GetLexeme();
+
+
+	if ( (defVar.find(var) != defVar.end() ) || ( defConst.find(var) != defConst.end() )) {
+		ParseError(line, "Variable redefinition: " + var);
+		return false;
+	} else {
+		varslist.push_back(var);
+	}
+
 
 	while (true) { // Zero or more IDENT check
 		tok = Parser::GetNextToken(in, line);
@@ -99,6 +110,15 @@ bool DeclStmt(istream& in, int& line) { // DeclStmt ::= IDENT {, IDENT } : Type 
 		if (tok.GetToken() != IDENT) {
 			ParseError(line, "Missing identifier in declaration statement");
 			return false;
+		}
+
+		var = tok.GetLexeme();
+		if ((defVar.find(var) != defVar.end()) || (defConst.find(var) != defConst.end())) {
+			ParseError(line, "Variable redefinition: " + var);
+			return false;
+		}
+		else {
+			varslist.push_back(var);
 		}
 	}
 
@@ -130,6 +150,11 @@ bool DeclStmt(istream& in, int& line) { // DeclStmt ::= IDENT {, IDENT } : Type 
 	else {
 		Parser::PushBackToken(tok);
 	}
+
+	for (const auto& v : varslist) {
+		defVar[v] = true;
+	}
+
 	return true;
 }
 
@@ -218,12 +243,160 @@ bool SimpleStmt(istream& in, int& line) { // SimpleStmt ::= AssignStmt | ReadLnS
 		return false;
 	}
 }
-bool WriteLnStmt(istream& in, int& line); // WriteLnStmt ::= WRITELN ( ExprList )
-bool WriteStmt(istream& in, int& line); // WriteStmt ::= WRITE ( ExprList )
-bool ReadLnStmt(istream& in, int& line); // ReadLnStmt ::= ReadLnStmt ( VarList )
-bool IfStmt(istream& in, int& line); // IfStmt ::= IF Expr THEN Stmt [ ELSE Stmt ]
-bool AssignStmt(istream& in, int& line); // AssignStmt ::= Variable := Expr
-bool Variable(istream& in, int& line); // Variable ::= IDENT
+bool WriteLnStmt(istream& in, int& line) { // WriteLnStmt ::= WRITELN ( ExprList ) 
+	LexItem tok = Parser::GetNextToken(in, line);
+
+	if (tok.GetToken() != WRITELN) {
+		ParseError(line, "Missing writeln in writeln statement");
+		return false;
+	}
+
+	tok = Parser::GetNextToken(in, line);
+	if (tok.GetToken() != LPAREN) {
+		ParseError(line, "Missing open parentheses in writeln statement");
+		return false;
+	}
+
+	if (!ExprList(in, line)) {
+		ParseError(line, "Missing expression list in WRITELN");
+		return false;
+	}
+
+	tok = Parser::GetNextToken(in, line);
+	if (tok.GetToken() != RPAREN) {
+		ParseError(line, "Mising closing parentheses in writeln statement");
+		return false;
+	}
+	return true;
+}
+
+bool WriteStmt(istream& in, int& line) { // WriteStmt ::= WRITE ( ExprList )
+	LexItem tok = Parser::GetNextToken(in, line);
+
+	if (tok.GetToken() != WRITE) {
+		ParseError(line, "Missing WRITE in write statement");
+		return false;
+	}
+
+	tok = Parser::GetNextToken(in, line);
+	if (tok.GetToken() != LPAREN) {
+		ParseError(line, "Missing open parentheses in write statement");
+		return false;
+	}
+
+	if (!ExprList(in, line)) {
+		ParseError(line, "Missing expresssion list in write statement");
+		return false;
+	}
+
+	tok = Parser::GetNextToken(in, line);
+	if (tok.GetToken() != RPAREN) {
+		ParseError(line, "Missing closing parentheses in write statement");
+		return false;
+	}
+
+	return true;
+}
+bool ReadLnStmt(istream& in, int& line) { // ReadLnStmt ::= READLN ( VarList )
+	LexItem tok = Parser::GetNextToken(in, line);
+
+	if (tok.GetToken() != READLN) {
+		ParseError(line, "Missing READLN in readln statement");
+		return false;
+	}
+
+	tok = Parser::GetNextToken(in, line);
+
+	if (tok.GetToken() != LPAREN) {
+		ParseError(line, "Missing opening parentheses in readln statement");
+		return false;
+	}
+	
+	if (!VarList(in, line)) {
+		ParseError(line, "Missing variable list in readln statement");
+		return false;
+	}
+
+	tok = Parser::GetNextToken(in, line);
+	if (tok.GetToken() != RPAREN) {
+		ParseError(line, "Missing closing parentheses in readln statement");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool IfStmt(istream& in, int& line) { // IfStmt ::= IF Expr THEN Stmt [ ELSE Stmt ]
+	LexItem tok = Parser::GetNextToken(in, line);
+
+	if (tok.GetToken() != IF) {
+		ParseError(line, "Missing if keyword in if statement");
+		return false;
+	}
+
+	if (!Expr(in, line)) {
+		ParseError(line, "Missing expression in if statement");
+		return false;
+	}
+
+	tok = Parser::GetNextToken(in, line);
+	if (tok.GetToken() != THEN) {
+		ParseError(line, "Missing then keyword in if statement");
+		return false;
+	}
+
+	if (!Stmt(in, line)) {
+		ParseError(line, "Missing statement in if statement");
+		return false;
+	}
+
+	tok = Parser::GetNextToken(in, line);
+	if (tok.GetToken() == ELSE) {
+		if (!Stmt(in, line)) {
+			ParseError(line, "Missing statement after else in if statement");
+			return false;
+		}
+	}
+	else {
+		Parser::PushBackToken(tok);
+	}
+
+	return true;
+}
+
+bool AssignStmt(istream& in, int& line) { // AssignStmt ::= Variable := Expr
+	LexItem tok = Parser::GetNextToken(in, line);
+	Parser::PushBackToken(tok);
+
+	if (!Variable(in, line)) {
+		ParseError(line, "Missing variable in assignment statement");
+		return false;
+	}
+
+	tok = Parser::GetNextToken(in, line);
+	if (tok.GetToken() != ASSOP) {
+		ParseError(line, "Missing assignment operator in assignment statement");
+		return false;
+	}
+
+	if (!Expr(in, line)) {
+		ParseError(line, "Missing expression in assignment statement");
+		return false;
+	}
+
+	return true;
+}
+
+bool Variable(istream& in, int& line) { // Variable ::= IDENT
+	LexItem tok = Parser::GetNextToken(in, line);
+	if (tok.GetToken() != IDENT) {
+		ParseError(line, "Missing identifier for variable");
+		return false;
+	}
+	return true;
+}
+
 bool ExprList(istream& in, int& line); // ExprList ::= Expr { , Expr }
 bool Expr(istream& in, int& line); // Expr ::= RelExpr ::= SimpleExpr [ ( = | < | > ) SimpleExpr ]
 bool IdentList(istream& in, int& line); // IdentList ::= IDENT {, IDENT}
@@ -232,4 +405,3 @@ bool SimpleExpr(istream& in, int& line); // SimpleExpr :: Term { ( + | - | OR ) 
 bool Term(istream& in, int& line); // Term ::= SFactor { ( * | / | DIV | MOD | AND ) SFactor }
 bool SFactor(istream& in, int& line); // SFactor ::= [( - | + | NOT )] Factor
 bool Factor(istream& in, int& line, int sign); // Factor ::= IDENT | ICONST | RCONST | SCONST | BCONST | CCONST | (Expr)
-int ErrCount();
